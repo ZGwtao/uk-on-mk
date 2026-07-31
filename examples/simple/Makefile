@@ -38,8 +38,7 @@ ${BUILD_DIR}/Makefile: unikernel.mk Makefile
 	cat unikernel.mk >> $@
 
 submodules:
-	git submodule update --init $(UK)/dep/sddf
-	git submodule update --init $(UK)/dep/unikraft
-	git submodule update --init $(UK)/dep/catalog-core
+	git -C $(ROOT) submodule update --init --recursive \
+		dep/sddf dep/unikraft dep/catalog-core
 
 FORCE:

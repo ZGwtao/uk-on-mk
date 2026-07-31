@@ -69,7 +69,7 @@ $(IMAGE_FILE) $(REPORT_FILE): $(IMAGES) $(SYSTEM_FILE)
 		--search-path $(BUILD_DIR) --board $(MICROKIT_BOARD) 	\
 		--config $(MICROKIT_CONFIG) -o $(IMAGE_FILE) -r $(REPORT_FILE)
 
-qemu: ${IMAGE_FILE}k
+qemu: ${IMAGE_FILE}
 	$(QEMU) -machine virt,virtualization=on \
 		-cpu cortex-a53 \
 		-serial mon:stdio \

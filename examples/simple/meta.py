@@ -35,12 +35,15 @@ def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
 
     uk_boot_stack = MR(sdf, "uk_boot_stack", (0x1000 * (1 << 4)))
     uk_boot_heap = MR(sdf, "uk_boot_heap", (0x1000 * (1 << 10)))
+    uk_runtime_heap = MR(sdf, "uk_runtime_heap", 0x200000)
 
     sdf.add_mr(uk_boot_stack)
     sdf.add_mr(uk_boot_heap)
+    sdf.add_mr(uk_runtime_heap)
 
     unikernel.add_map(MAP(uk_boot_stack, 0xFF008000, perms="rw", cached="true"))
     unikernel.add_map(MAP(uk_boot_heap, 0xFF018000, perms="rw", cached="true"))
+    unikernel.add_map(MAP(uk_runtime_heap, 0x500000, perms="rw", cached="true"))
 
     serial_system.add_client(unikernel)
     timer_system.add_client(unikernel)
