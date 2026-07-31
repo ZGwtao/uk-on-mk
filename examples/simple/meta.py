@@ -1,0 +1,97 @@
+# Copyright 2026, UNSW
+# SPDX-License-Identifier: BSD-2-Clause
+
+import sys
+import argparse
+import importlib
+from pathlib import Path
+from sdfgen import SystemDescription, Sddf, DeviceTree, LionsOs
+from importlib.metadata import version
+
+assert version("sdfgen").split(".")[1] == "33", "Unexpected sdfgen version"
+
+SDF = SystemDescription
+PD = SDF.ProtectionDomain
+MR = SDF.MemoryRegion
+MAP = SDF.Map
+
+
+def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
+    serial_node = dtb.node(board.serial)
+    assert serial_node is not None
+    timer_node = dtb.node(board.timer)
+    assert timer_node is not None
+
+    timer_driver = PD("timer_driver", "timer_driver.elf", priority=254)
+    timer_system = Sddf.Timer(sdf, timer_node, timer_driver)
+
+    serial_driver = PD("serial_driver", "serial_driver.elf", priority=100)
+    serial_virt_tx = PD("serial_virt_tx", "serial_virt_tx.elf", priority=99)
+    serial_virt_rx = PD("serial_virt_rx", "serial_virt_rx.elf", priority=99)
+    serial_system = Sddf.Serial(sdf, serial_node, serial_driver,
+                                serial_virt_tx, virt_rx=serial_virt_rx)
+
+    unikernel = PD("unikraft", "unikraft.elf", priority=50)
+
+    uk_boot_stack = MR(sdf, "uk_boot_stack", (0x1000 * (1 << 4)))
+    uk_boot_heap = MR(sdf, "uk_boot_heap", (0x1000 * (1 << 10)))
+
+    sdf.add_mr(uk_boot_stack)
+    sdf.add_mr(uk_boot_heap)
+
+    unikernel.add_map(MAP(uk_boot_stack, 0xFF008000, perms="rw", cached="true"))
+    unikernel.add_map(MAP(uk_boot_heap, 0xFF018000, perms="rw", cached="true"))
+
+    serial_system.add_client(unikernel)
+    timer_system.add_client(unikernel)
+
+    pds = [
+        serial_driver,
+        serial_virt_tx,
+        serial_virt_rx,
+        timer_driver,
+        unikernel,
+    ]
+    for pd in pds:
+        sdf.add_pd(pd)
+
+    assert serial_system.connect()
+    assert serial_system.serialise_config(output_dir)
+    assert timer_system.connect()
+    assert timer_system.serialise_config(output_dir)
+
+    with open(f"{output_dir}/{sdf_path}", "w+") as f:
+        f.write(sdf.render())
+
+
+def load_boards(sddf_root: str):
+    meta_dir = Path(sddf_root).resolve() / "tools" / "meta"
+    sys.path.insert(0, str(meta_dir))
+    board_mod = importlib.import_module("board")
+    BOARDS = getattr(board_mod, "BOARDS")
+    return BOARDS
+
+
+if __name__ == "__main__":
+    board_parser = argparse.ArgumentParser(add_help=False)
+    board_parser.add_argument("--sddf", required=True)
+    board_args, _ = board_parser.parse_known_args()
+    sddf = Sddf(board_args.sddf)
+    BOARDS = load_boards(board_args.sddf)
+    parser = argparse.ArgumentParser(parents=[board_parser])
+    parser.add_argument("--dtb", required=True)
+    parser.add_argument("--board", required=True, choices=[b.name for b in BOARDS])
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--sdf", required=True)
+    parser.add_argument("--objcopy", required=True)
+
+    args = parser.parse_args()
+
+    board = next(filter(lambda b: b.name == args.board, BOARDS))
+
+    sdf = SDF(board.arch, board.paddr_top)
+
+    with open(args.dtb, "rb") as f:
+        dtb = DeviceTree(f.read())
+
+    generate(args.sdf, args.output, dtb)
