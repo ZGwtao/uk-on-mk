@@ -31,7 +31,7 @@ def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
     serial_system = Sddf.Serial(sdf, serial_node, serial_driver,
                                 serial_virt_tx, virt_rx=serial_virt_rx)
 
-    unikernel = PD("unikraft", "unikraft.elf", priority=50)
+    unikernel = PD("unikraft", "unikraft.elf", priority=50, stack_size=0x10000)
 
     uk_boot_stack = MR(sdf, "uk_boot_stack", (0x1000 * (1 << 4)))
     uk_boot_heap = MR(sdf, "uk_boot_heap", (0x1000 * (1 << 10)))

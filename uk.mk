@@ -6,7 +6,7 @@ UK_CONFIG_DIR := $(UK_SRC_DIR)/config
 BM_UNIKRAFT_DIR := $(ROOT)/dep/unikraft
 BM_CATALOG_CORE_DIR := $(ROOT)/dep/catalog-core
 
-BM_UK_APPLICATION ?= c-hello
+BM_UK_APPLICATION ?= c-fs
 BM_UK_PAYLOAD_ELF ?= $(BM_UK_APPLICATION)_default-arm64
 
 BM_UK_CONFIG ?= uk-carrels-arm.config
