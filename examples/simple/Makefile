@@ -23,10 +23,6 @@ all: ${IMAGE_FILE}
 qemu ${IMAGE_FILE} ${REPORT_FILE} system clean: ${BUILD_DIR}/Makefile FORCE
 	${MAKE} -C ${BUILD_DIR} MICROKIT_SDK=${MICROKIT_SDK} $(notdir $@)
 
-${BUILD_DIR}/Makefile: unikernel.mk
-	mkdir -p ${BUILD_DIR}
-	cp unikernel.mk $@
-
 ${BUILD_DIR}/Makefile: unikernel.mk Makefile
 	mkdir -p ${BUILD_DIR}
 	echo "export ROOT ?= ${ROOT}" > $@

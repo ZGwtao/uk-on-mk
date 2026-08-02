@@ -21,6 +21,8 @@ def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
     assert serial_node is not None
     timer_node = dtb.node(board.timer)
     assert timer_node is not None
+    ethernet_node = dtb.node(board.ethernet)
+    assert ethernet_node is not None
 
     timer_driver = PD("timer_driver", "timer_driver.elf", priority=254)
     timer_system = Sddf.Timer(sdf, timer_node, timer_driver)
@@ -31,11 +33,34 @@ def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
     serial_system = Sddf.Serial(sdf, serial_node, serial_driver,
                                 serial_virt_tx, virt_rx=serial_virt_rx)
 
+
+    ethernet_driver = PD(
+        "ethernet_driver",
+        "eth_driver.elf",
+        priority=101,
+        budget=100,
+        period=400,
+    )
+    net_virt_tx = PD(
+        "net_virt_tx",
+        "network_virt_tx.elf",
+        priority=100,
+        budget=20000,
+    )
+    net_virt_rx = PD("net_virt_rx", "network_virt_rx.elf", priority=99)
+    net_system = Sddf.Net(
+        sdf, ethernet_node, ethernet_driver, net_virt_tx, net_virt_rx
+    )
+    net_copier = PD(
+        "net_copier", "network_copy.elf", priority=98, budget=20000
+    )
+
+
     unikernel = PD("unikraft", "unikraft.elf", priority=50, stack_size=0x10000)
 
     uk_boot_stack = MR(sdf, "uk_boot_stack", (0x1000 * (1 << 4)))
     uk_boot_heap = MR(sdf, "uk_boot_heap", (0x1000 * (1 << 10)))
-    uk_runtime_heap = MR(sdf, "uk_runtime_heap", 0x200000)
+    uk_runtime_heap = MR(sdf, "uk_runtime_heap", 0x1000000)
 
     sdf.add_mr(uk_boot_stack)
     sdf.add_mr(uk_boot_heap)
@@ -47,12 +72,17 @@ def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
 
     serial_system.add_client(unikernel)
     timer_system.add_client(unikernel)
+    net_system.add_client_with_copier(unikernel, net_copier)
 
     pds = [
         serial_driver,
         serial_virt_tx,
         serial_virt_rx,
         timer_driver,
+        ethernet_driver,
+        net_virt_tx,
+        net_virt_rx,
+        net_copier,
         unikernel,
     ]
     for pd in pds:
@@ -62,6 +92,8 @@ def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
     assert serial_system.serialise_config(output_dir)
     assert timer_system.connect()
     assert timer_system.serialise_config(output_dir)
+    assert net_system.connect()
+    assert net_system.serialise_config(output_dir)
 
     with open(f"{output_dir}/{sdf_path}", "w+") as f:
         f.write(sdf.render())
