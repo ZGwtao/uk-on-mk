@@ -5,7 +5,7 @@
 [submodule "dep/unikraft"]
 	path = dep/unikraft
 	url = https://github.com/ZGwtao/unikraft.git
-	branch = carrels-dev
+	branch = uk-on-mk
 [submodule "dep/sddf"]
 	path = dep/sddf
 	url = https://github.com/au-ts/sddf.git
