@@ -44,7 +44,7 @@ BM_UK_MAKE_ARGS := \
 .PHONY: uk-build uk-initrd
 
 uk-build: $(BM_UK_CONFIGURED) libsddf_util.a uk-initrd
-	$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS) -j$$(proc)
+	$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS) -j$(nproc)
 	cp $(BM_UK_BUILT_ELF) $(BM_UK_PAYLOAD_ELF)
 
 uk-initrd:

@@ -18,18 +18,9 @@ MAP = SDF.Map
 
 def create_unikernel(name: str):
     unikernel = PD(f"{name}", f"{name}.elf", priority=50, stack_size=0x10000)
-
-    uk_boot_stack = MR(sdf, f"{name}/uk_boot_stack", (0x1000 * (1 << 4)))
-    uk_boot_heap = MR(sdf, f"{name}/uk_boot_heap", (0x1000 * (1 << 10)))
-    uk_runtime_heap = MR(sdf, f"{name}/uk_runtime_heap", 0x1000000)
-
-    sdf.add_mr(uk_boot_stack)
-    sdf.add_mr(uk_boot_heap)
-    sdf.add_mr(uk_runtime_heap)
-
-    unikernel.add_map(MAP(uk_boot_stack, 0xFF008000, perms="rw", cached="true"))
-    unikernel.add_map(MAP(uk_boot_heap, 0xFF018000, perms="rw", cached="true"))
-    unikernel.add_map(MAP(uk_runtime_heap, 0xfff50000, perms="rw", cached="true"))
+    uk_heap = MR(sdf, f"{name}/uk_heap", 0x1000000)
+    sdf.add_mr(uk_heap)
+    unikernel.add_map(MAP(uk_heap, 0xfff50000, perms="rw", cached="true"))
     return unikernel
 
 
