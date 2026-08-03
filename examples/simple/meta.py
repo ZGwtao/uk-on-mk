@@ -16,6 +16,23 @@ MR = SDF.MemoryRegion
 MAP = SDF.Map
 
 
+def create_unikernel(name: str):
+    unikernel = PD(f"{name}", f"{name}.elf", priority=50, stack_size=0x10000)
+
+    uk_boot_stack = MR(sdf, f"{name}/uk_boot_stack", (0x1000 * (1 << 4)))
+    uk_boot_heap = MR(sdf, f"{name}/uk_boot_heap", (0x1000 * (1 << 10)))
+    uk_runtime_heap = MR(sdf, f"{name}/uk_runtime_heap", 0x1000000)
+
+    sdf.add_mr(uk_boot_stack)
+    sdf.add_mr(uk_boot_heap)
+    sdf.add_mr(uk_runtime_heap)
+
+    unikernel.add_map(MAP(uk_boot_stack, 0xFF008000, perms="rw", cached="true"))
+    unikernel.add_map(MAP(uk_boot_heap, 0xFF018000, perms="rw", cached="true"))
+    unikernel.add_map(MAP(uk_runtime_heap, 0xfff50000, perms="rw", cached="true"))
+    return unikernel
+
+
 def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
     serial_node = dtb.node(board.serial)
     assert serial_node is not None
@@ -55,20 +72,7 @@ def generate(sdf_path: str, output_dir: str, dtb: DeviceTree):
         "net_copier", "network_copy.elf", priority=98, budget=20000
     )
 
-
-    unikernel = PD("unikraft", "unikraft.elf", priority=50, stack_size=0x10000)
-
-    uk_boot_stack = MR(sdf, "uk_boot_stack", (0x1000 * (1 << 4)))
-    uk_boot_heap = MR(sdf, "uk_boot_heap", (0x1000 * (1 << 10)))
-    uk_runtime_heap = MR(sdf, "uk_runtime_heap", 0x1000000)
-
-    sdf.add_mr(uk_boot_stack)
-    sdf.add_mr(uk_boot_heap)
-    sdf.add_mr(uk_runtime_heap)
-
-    unikernel.add_map(MAP(uk_boot_stack, 0xFF008000, perms="rw", cached="true"))
-    unikernel.add_map(MAP(uk_boot_heap, 0xFF018000, perms="rw", cached="true"))
-    unikernel.add_map(MAP(uk_runtime_heap, 0x500000, perms="rw", cached="true"))
+    unikernel = create_unikernel("unikraft")
 
     serial_system.add_client(unikernel)
     timer_system.add_client(unikernel)

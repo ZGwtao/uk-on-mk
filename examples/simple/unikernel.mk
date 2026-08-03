@@ -90,7 +90,7 @@ qemu: ${IMAGE_FILE}
 		-device loader,file=$(IMAGE_FILE),addr=0x70000000,cpu-num=0 \
 		-m size=2G \
 		-nographic \
-		-netdev user,id=netdev0,hostfwd=tcp::8080-:8080 \
+		-netdev user,id=netdev0,hostfwd=tcp::8080-:80 \
 		-global virtio-mmio.force-legacy=false \
 		-d guest_errors \
 		$(QEMU_NET_ARGS)
