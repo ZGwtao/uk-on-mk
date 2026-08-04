@@ -3,7 +3,8 @@ BM_CATALOG_CORE_DIR := $(ROOT)/dep/catalog-core
 
 UK_CONFIG_DIR := $(ROOT)/config
 
-BM_UK_APPLICATION ?= nginx
+BM_UK_APPLICATION ?= sqlite
+# BM_UK_APPLICATION ?= nginx
 # BM_UK_APPLICATION ?= c-fs
 BM_UK_PAYLOAD_ELF ?= $(BM_UK_APPLICATION)_default-arm64
 
@@ -14,12 +15,13 @@ BM_UK_CONFIG_SRC := $(UK_CONFIG_DIR)/uk/$(BM_UK_CONFIG)
 BM_UK_APP_DIR := $(BM_CATALOG_CORE_DIR)/$(BM_UK_APPLICATION)
 
 BM_UK_MUSL_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/musl
-BM_UK_NGINX_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/nginx
+# BM_UK_NGINX_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/nginx
+BM_UK_SQLITE_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/sqlite
 BM_UK_LWIP_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/lwip
 
 # Unikraft expects a colon-separated list.
 BM_UK_LIBS := \
-	$(BM_UK_MUSL_DIR):$(BM_UK_NGINX_DIR):$(BM_UK_LWIP_DIR)
+	$(BM_UK_MUSL_DIR):$(BM_UK_SQLITE_DIR):$(BM_UK_LWIP_DIR)
 # BM_UK_LIBS := 
 
 BM_UK_BUILD_DIR := $(BUILD_DIR)/uk
