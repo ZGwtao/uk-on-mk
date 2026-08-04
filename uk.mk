@@ -9,7 +9,7 @@ BM_UK_APPLICATION ?= sqlite
 BM_UK_PAYLOAD_ELF ?= $(BM_UK_APPLICATION)_default-arm64
 
 # BM_UK_CONFIG ?= uk-carrels-arm.config
-BM_UK_CONFIG ?= uk-carrels-nginx-arm.config
+BM_UK_CONFIG ?= uk-carrels-sqlite-arm.config
 BM_UK_CONFIG_SRC := $(UK_CONFIG_DIR)/uk/$(BM_UK_CONFIG)
 
 BM_UK_APP_DIR := $(BM_CATALOG_CORE_DIR)/$(BM_UK_APPLICATION)
@@ -29,7 +29,7 @@ BM_UK_BUILT_ELF := $(BM_UK_BUILD_DIR)/$(BM_UK_PAYLOAD_ELF)
 BM_UK_CONFIGURED := $(BM_UK_BUILD_DIR)/.configured
 
 BM_UK_ROOTFS_DIR := $(BM_UK_APP_DIR)/rootfs
-BM_UK_INITRD := $(BUILD_DIR)/initrd.cpio
+BM_UK_INITRD := $(BM_UK_APP_DIR)/initrd.cpio
 BM_UK_MKCPIO := $(BM_UNIKRAFT_DIR)/support/scripts/mkcpio
 
 BM_UK_MAKE_ARGS := \
