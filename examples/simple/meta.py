@@ -8,7 +8,7 @@ from pathlib import Path
 from sdfgen import SystemDescription, Sddf, DeviceTree, LionsOs
 from importlib.metadata import version
 
-assert version("sdfgen").split(".")[1] == "33", "Unexpected sdfgen version"
+assert version("sdfgen").split(".")[1] == "35", "Unexpected sdfgen version"
 
 SDF = SystemDescription
 PD = SDF.ProtectionDomain
