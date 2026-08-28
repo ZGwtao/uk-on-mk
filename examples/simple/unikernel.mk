@@ -25,7 +25,8 @@ SYSTEM_FILE := uk-on-mk.system
 IMAGE_FILE := uk-on-mk.img
 REPORT_FILE := report.txt
 QEMU_HOST_PORT ?= 8080
-QEMU_HOSTFWD ?= ,hostfwd=tcp::$(QEMU_HOST_PORT)-:80
+QEMU_GUEST_PORT ?= $(if $(filter c-http,$(BM_UK_APPLICATION)),8080,80)
+QEMU_HOSTFWD ?= ,hostfwd=tcp::$(QEMU_HOST_PORT)-:$(QEMU_GUEST_PORT)
 
 
 all: ${IMAGE_FILE}

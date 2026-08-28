@@ -3,39 +3,55 @@ BM_CATALOG_CORE_DIR := $(ROOT)/dep/catalog-core
 BM_UK_MKCPIO := $(BM_UNIKRAFT_DIR)/support/scripts/mkcpio
 
 UK_CONFIG_DIR := $(ROOT)/config/uk
+BM_UK_LIBRARY_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs
 
-BM_UK_MUSL_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/musl
-BM_UK_SQLITE_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/sqlite
-BM_UK_NGINX_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/nginx
-BM_UK_LWIP_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs/lwip
+BM_UK_LIB_DIR_musl := $(BM_UK_LIBRARY_DIR)/musl
+BM_UK_LIB_DIR_sqlite := $(BM_UK_LIBRARY_DIR)/sqlite
+BM_UK_LIB_DIR_nginx := $(BM_UK_LIBRARY_DIR)/nginx
+BM_UK_LIB_DIR_lwip := $(BM_UK_LIBRARY_DIR)/lwip
 
 BM_UK_APPLICATION ?= sqlite
-BM_UK_APPLICATIONS := c-hello sqlite nginx
+BM_UK_APPLICATIONS := c-hello c-fs c-http sqlite nginx
 
-BM_UK_CONFIG_c-hello := uk-carrels-c-hello-arm.config
-BM_UK_LIBS_c-hello :=
+BM_UK_DEPS_c-http := lwip
+BM_UK_DEPS_sqlite := musl sqlite
+BM_UK_DEPS_nginx := musl nginx lwip
 
-BM_UK_CONFIG_sqlite := uk-carrels-sqlite-arm.config
-BM_UK_LIBS_sqlite := $(BM_UK_MUSL_DIR):$(BM_UK_SQLITE_DIR)
+BM_UK_MAIN_SRC_c-hello := $(ROOT)/apps/c-hello.c
+BM_UK_MAIN_DST_c-hello := $(BM_CATALOG_CORE_DIR)/c-hello/hello.c
 
-BM_UK_CONFIG_nginx := uk-carrels-nginx-arm.config
-BM_UK_LIBS_nginx := \
-	$(BM_UK_MUSL_DIR):$(BM_UK_NGINX_DIR):$(BM_UK_LWIP_DIR)
+BM_UK_MAIN_SRC_c-fs := $(ROOT)/apps/c-fs.c
+BM_UK_MAIN_DST_c-fs := $(BM_CATALOG_CORE_DIR)/c-fs/cat.c
 
-BM_UK_MAIN_SRC_sqlite := $(ROOT)/apps/main_sqlite.c
-BM_UK_MAIN_DST_sqlite := $(BM_UK_SQLITE_DIR)/main.c
+BM_UK_MAIN_SRC_c-http := $(ROOT)/apps/c-http.c
+BM_UK_MAIN_DST_c-http := $(BM_CATALOG_CORE_DIR)/c-http/server.c
 
-BM_UK_MAIN_SRC_nginx := $(ROOT)/apps/main_nginx.c
-BM_UK_MAIN_DST_nginx := $(BM_UK_NGINX_DIR)/main.c
+BM_UK_MAIN_SRC_sqlite := $(ROOT)/apps/sqlite.c
+BM_UK_MAIN_DST_sqlite := $(BM_UK_LIB_DIR_sqlite)/main.c
 
-BM_UK_INITRD_APPLICATIONS := sqlite nginx
+BM_UK_MAIN_SRC_nginx := $(ROOT)/apps/nginx.c
+BM_UK_MAIN_DST_nginx := $(BM_UK_LIB_DIR_nginx)/main.c
+
+BM_UK_INITRD_APPLICATIONS := c-fs sqlite nginx
 
 ifeq ($(filter $(BM_UK_APPLICATION),$(BM_UK_APPLICATIONS)),)
 $(error Unsupported BM_UK_APPLICATION '$(BM_UK_APPLICATION)'; choose one of: $(BM_UK_APPLICATIONS))
 endif
 
-BM_UK_CONFIG := $(BM_UK_CONFIG_$(BM_UK_APPLICATION))
-BM_UK_LIBS := $(BM_UK_LIBS_$(BM_UK_APPLICATION))
+empty :=
+space := $(empty) $(empty)
+
+BM_UK_CONFIG := uk-carrels-$(BM_UK_APPLICATION)-arm.config
+BM_UK_DEPS := $(BM_UK_DEPS_$(BM_UK_APPLICATION))
+BM_UK_UNKNOWN_DEPS := \
+	$(foreach dep,$(BM_UK_DEPS),$(if $(BM_UK_LIB_DIR_$(dep)),,$(dep)))
+
+ifneq ($(strip $(BM_UK_UNKNOWN_DEPS)),)
+$(error Unknown dependencies for $(BM_UK_APPLICATION): $(BM_UK_UNKNOWN_DEPS))
+endif
+
+BM_UK_LIBS := $(subst $(space),:,$(strip \
+	$(foreach dep,$(BM_UK_DEPS),$(BM_UK_LIB_DIR_$(dep)))))
 BM_UK_MAIN_SRC := $(BM_UK_MAIN_SRC_$(BM_UK_APPLICATION))
 BM_UK_MAIN_DST := $(BM_UK_MAIN_DST_$(BM_UK_APPLICATION))
 BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-arm64
@@ -67,18 +83,19 @@ BM_UK_MAKE_ARGS += \
 	CONFIG_LIBVFSCORE_AUTOMOUNT_EINITRD_PATH=$(BM_UK_INITRD)
 endif
 
-.PHONY: uk-build uk-initrd uk-prepare-main
+.PHONY: uk-build uk-catalog-setup uk-initrd uk-prepare-main
 
 uk-build: $(BM_UK_CONFIGURED) libsddf_util.a $(BM_UK_INITRD_PREREQUISITE) uk-prepare-main
 	$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS)
 
-ifneq ($(BM_UK_MAIN_SRC),)
-uk-prepare-main: $(BM_UK_MAIN_SRC)
+uk-catalog-setup:
+	mkdir -p $(BM_CATALOG_CORE_DIR)/repos/libs
+	mkdir -p $(BM_CATALOG_CORE_DIR)/repos/apps
+	cd $(BM_CATALOG_CORE_DIR) && ./setup.sh
+	cd $(BM_UK_APP_DIR) && ./setup.sh
+
+uk-prepare-main: $(BM_UK_MAIN_SRC) | uk-catalog-setup
 	cp $< $(BM_UK_MAIN_DST)
-else
-uk-prepare-main:
-	@:
-endif
 
 ifneq ($(filter $(BM_UK_APPLICATION),$(BM_UK_INITRD_APPLICATIONS)),)
 uk-initrd:
@@ -89,7 +106,7 @@ uk-initrd:
 	@:
 endif
 
-$(BM_UK_CONFIGURED): $(BM_UK_CONFIG_SRC) $(ROOT)/uk.mk
+$(BM_UK_CONFIGURED): $(BM_UK_CONFIG_SRC) $(ROOT)/uk.mk | uk-catalog-setup
 	mkdir -p $(BM_UK_BUILD_DIR)
 	$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS) \
 		UK_DEFCONFIG=$(BM_UK_CONFIG_SRC) defconfig
