@@ -24,6 +24,8 @@ SDDF := $(ROOT)/dep/sddf
 SYSTEM_FILE := uk-on-mk.system
 IMAGE_FILE := uk-on-mk.img
 REPORT_FILE := report.txt
+QEMU_HOST_PORT ?= 8080
+QEMU_HOSTFWD ?= ,hostfwd=tcp::$(QEMU_HOST_PORT)-:80
 
 
 all: ${IMAGE_FILE}
@@ -90,7 +92,7 @@ qemu: ${IMAGE_FILE}
 		-device loader,file=$(IMAGE_FILE),addr=0x70000000,cpu-num=0 \
 		-m size=2G \
 		-nographic \
-		-netdev user,id=netdev0,hostfwd=tcp::8080-:80 \
+		-netdev user,id=netdev0$(QEMU_HOSTFWD) \
 		-global virtio-mmio.force-legacy=false \
 		-d guest_errors \
 		$(QEMU_NET_ARGS)
