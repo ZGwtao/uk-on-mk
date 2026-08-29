@@ -5,9 +5,8 @@
 
 #include <uk/sddf.h>
 
-const char carrels_cmdline[] =
-	"sqlite /test.db "
-	"'CREATE TABLE IF NOT EXISTS users ("
+static const char sqlite_script[] =
+	"CREATE TABLE IF NOT EXISTS users ("
 	"  id INTEGER PRIMARY KEY,"
 	"  name TEXT NOT NULL,"
 	"  score INTEGER"
@@ -17,7 +16,7 @@ const char carrels_cmdline[] =
 	"  (\"Alice\", 95),"
 	"  (\"Bob\", 87),"
 	"  (\"Carol\", 91);"
-	"SELECT id, name, score FROM users ORDER BY id;'";
+	"SELECT id, name, score FROM users ORDER BY id;";
 
 extern int sqlite_main(int argc, char *argv[]);
 
@@ -53,14 +52,11 @@ static int setup_stdio(void)
 
 int uk_app_main(int argc, char *argv[])
 {
-	sddf_printf("SQLITE MAIN: argc=%d\n", argc);
-
-	for (int i = 0; i < argc; i++)
-		sddf_printf("argv[%d]=%s\n", i,
-			    argv[i] ? argv[i] : "<null>");
-
 	if (setup_stdio() < 0)
 		sddf_printf("stdio setup failed\n");
 
-	return sqlite_main(argc, argv);
+	char *fallback[] = { (char *)"sqlite", (char *)"/test.db",
+		(char *)sqlite_script, NULL };
+
+	return sqlite_main(3, fallback);
 }
