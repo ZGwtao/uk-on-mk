@@ -26,8 +26,12 @@ IMAGE_FILE := uk-on-mk.img
 REPORT_FILE := report.txt
 QEMU_HOST_PORT ?= 8080
 QEMU_GUEST_PORT ?= $(if $(filter c-http,$(BM_UK_APPLICATION)),8080,80)
-QEMU_HOSTFWD ?= ,hostfwd=tcp::$(QEMU_HOST_PORT)-:$(QEMU_GUEST_PORT)
-
+# Only network services need a host forwarding rule.  Omitting it for
+# non-network applications avoids failing QEMU when a host service owns 8080.
+QEMU_HOSTFWD :=
+ifneq ($(filter c-http nginx,$(BM_UK_APPLICATION)),)
+QEMU_HOSTFWD := ,hostfwd=tcp::$(QEMU_HOST_PORT)-:$(QEMU_GUEST_PORT)
+endif
 
 all: ${IMAGE_FILE}
 
