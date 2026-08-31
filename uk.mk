@@ -103,6 +103,7 @@ uk-prepare-main: $(BM_UK_MAIN_SRC) | uk-catalog-setup
 
 ifneq ($(filter $(BM_UK_APPLICATION),$(BM_UK_INITRD_APPLICATIONS)),)
 uk-initrd:
+	mkdir -p $(dir $(BM_UK_INITRD))
 	rm -f $(BM_UK_INITRD)
 	$(BM_UK_MKCPIO) $(BM_UK_INITRD) $(BM_UK_ROOTFS_DIR)
 else
