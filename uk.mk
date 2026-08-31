@@ -61,6 +61,7 @@ BM_UK_BUILD_DIR := $(BUILD_DIR)/uk/$(BM_UK_APPLICATION)
 BM_UK_BUILT_ELF := $(BM_UK_BUILD_DIR)/$(BM_UK_PAYLOAD_ELF)
 BM_UK_CONFIG_SRC := $(UK_CONFIG_DIR)/$(BM_UK_CONFIG)
 BM_UK_CONFIGURED := $(BM_UK_BUILD_DIR)/.configured
+BM_UK_DEFCONFIG := $(BM_UK_BUILD_DIR)/defconfig
 
 BM_UK_ROOTFS_DIR := $(BM_UK_APP_DIR)/rootfs
 BM_UK_INITRD := $(BM_UK_BUILD_DIR)/initrd.cpio
@@ -85,8 +86,11 @@ endif
 
 .PHONY: uk-build uk-catalog-setup uk-initrd uk-prepare-main
 
+# Keep Carrels' recursive Make variables out of Unikraft's build directory.
+# So, "env -u variables"...
 uk-build: $(BM_UK_CONFIGURED) libsddf_util.a $(BM_UK_INITRD_PREREQUISITE) uk-prepare-main
-	$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS)
+	env -u BUILD_DIR -u MAKEFLAGS -u MAKEOVERRIDES \
+		$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS)
 
 uk-catalog-setup:
 	mkdir -p $(BM_CATALOG_CORE_DIR)/repos/libs
@@ -106,10 +110,16 @@ uk-initrd:
 	@:
 endif
 
+# Keep Carrels' recursive Make variables out of Unikraft's build directory.
+# So, "env -u variables"...
 $(BM_UK_CONFIGURED): $(BM_UK_CONFIG_SRC) $(ROOT)/uk.mk | uk-catalog-setup
 	mkdir -p $(BM_UK_BUILD_DIR)
-	$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS) \
-		UK_DEFCONFIG=$(BM_UK_CONFIG_SRC) defconfig
+	cp $(BM_UK_CONFIG_SRC) $(BM_UK_DEFCONFIG)
+	printf 'CONFIG_LIBVFSCORE_AUTOMOUNT_EINITRD_PATH="%s"\n' \
+		'$(BM_UK_INITRD)' >> $(BM_UK_DEFCONFIG)
+	env -u BUILD_DIR -u MAKEFLAGS -u MAKEOVERRIDES \
+		$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS) \
+		UK_DEFCONFIG=$(BM_UK_DEFCONFIG) defconfig
 	touch $@
 
 unikraft.elf: uk-build
