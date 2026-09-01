@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define LISTEN_PORT 8080
+#define LISTEN_PORT 80
 static const char reply[] = "HTTP/1.1 200 OK\r\n" \
 			    "Content-Type: text/html\r\n" \
 			    "Content-Length: 21\r\n" \
