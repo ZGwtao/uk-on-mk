@@ -11,9 +11,10 @@ BM_UK_LIB_DIR_nginx := $(BM_UK_LIBRARY_DIR)/nginx
 BM_UK_LIB_DIR_lwip := $(BM_UK_LIBRARY_DIR)/lwip
 
 BM_UK_APPLICATION ?= sqlite
-BM_UK_APPLICATIONS := c-hello c-fs c-http sqlite nginx
+BM_UK_APPLICATIONS := c-hello c-fs c-http c-nginx-client sqlite nginx
 
 BM_UK_DEPS_c-http := lwip
+BM_UK_DEPS_c-nginx-client := lwip
 BM_UK_DEPS_sqlite := musl sqlite
 BM_UK_DEPS_nginx := musl nginx lwip
 
@@ -25,6 +26,9 @@ BM_UK_MAIN_DST_c-fs := $(BM_CATALOG_CORE_DIR)/c-fs/cat.c
 
 BM_UK_MAIN_SRC_c-http := $(ROOT)/apps/c-http.c
 BM_UK_MAIN_DST_c-http := $(BM_CATALOG_CORE_DIR)/c-http/server.c
+
+BM_UK_MAIN_SRC_c-nginx-client := $(ROOT)/apps/nginx-client.c
+BM_UK_MAIN_DST_c-nginx-client := $(BM_CATALOG_CORE_DIR)/c-nginx-client/client.c
 
 BM_UK_MAIN_SRC_sqlite := $(ROOT)/apps/sqlite.c
 BM_UK_MAIN_DST_sqlite := $(BM_UK_LIB_DIR_sqlite)/main.c
