@@ -8,5 +8,5 @@
 	branch = uk-on-mk
 [submodule "dep/sddf"]
 	path = dep/sddf
-	url = https://github.com/au-ts/sddf.git
-	branch = main
+	url = https://github.com/ZGwtao/sddf.git
+	branch = dynamic-vswitch-dev
