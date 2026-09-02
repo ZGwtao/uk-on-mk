@@ -20,7 +20,7 @@ SUPPORTED_BOARDS:= \
 TOOLCHAIN ?= clang
 OBJCOPY = aarch64-none-elf-objcopy
 MICROKIT_TOOL ?= $(MICROKIT_SDK)/bin/microkit
-SDDF := $(ROOT)/dep/sddf
+SDDF ?= $(ROOT)/dep/sddf
 SYSTEM_FILE := uk-on-mk.system
 IMAGE_FILE := uk-on-mk.img
 REPORT_FILE := report.txt
@@ -102,5 +102,5 @@ qemu: ${IMAGE_FILE}
 		-d guest_errors \
 		$(QEMU_NET_ARGS)
 
-${SDDF}/tools/make/board/common.mk ${SDDF_MAKEFILES} ${ROOT}/dep/sddf/include &:
-	cd $(ROOT); git submodule update --init dep/sddf
+${SDDF}/tools/make/board/common.mk ${SDDF_MAKEFILES} ${SDDF}/include &:
+	SDDF="$(SDDF)" $(ROOT)/scripts/ensure-sddf.sh

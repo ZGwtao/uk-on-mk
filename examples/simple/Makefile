@@ -38,6 +38,7 @@ ${BUILD_DIR}/Makefile: unikernel.mk Makefile
 
 submodules:
 	git -C $(ROOT) submodule update --init --recursive \
-		dep/sddf dep/unikraft dep/catalog-core
+		dep/unikraft dep/catalog-core
+	SDDF="$(SDDF)" $(ROOT)/scripts/ensure-sddf.sh
 
 FORCE:

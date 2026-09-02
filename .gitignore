@@ -1,4 +1,5 @@
 pyenv
 build
+dep/sddf/
 *.cache
 workdir
