@@ -13,6 +13,16 @@ BM_UK_LIB_DIR_lwip := $(BM_UK_LIBRARY_DIR)/lwip
 BM_UK_APPLICATION ?= sqlite
 BM_UK_APPLICATIONS := c-hello c-fs c-http c-nginx-client sqlite nginx
 
+ifeq ($(ARCH),aarch64)
+BM_UK_ARCH := arm64
+BM_UK_CONFIG_ARCH := arm
+else ifeq ($(ARCH),x86_64)
+BM_UK_ARCH := x86_64
+BM_UK_CONFIG_ARCH := x86_64
+else
+$(error Unsupported ARCH '$(ARCH)'; expected aarch64 or x86_64)
+endif
+
 BM_UK_DEPS_c-http := lwip
 BM_UK_DEPS_c-nginx-client := lwip
 BM_UK_DEPS_sqlite := musl sqlite
@@ -45,7 +55,7 @@ endif
 empty :=
 space := $(empty) $(empty)
 
-BM_UK_CONFIG := uk-carrels-$(BM_UK_APPLICATION)-arm.config
+BM_UK_CONFIG := uk-carrels-$(BM_UK_APPLICATION)-$(BM_UK_CONFIG_ARCH).config
 BM_UK_DEPS := $(BM_UK_DEPS_$(BM_UK_APPLICATION))
 BM_UK_UNKNOWN_DEPS := \
 	$(foreach dep,$(BM_UK_DEPS),$(if $(BM_UK_LIB_DIR_$(dep)),,$(dep)))
@@ -58,7 +68,7 @@ BM_UK_LIBS := $(subst $(space),:,$(strip \
 	$(foreach dep,$(BM_UK_DEPS),$(BM_UK_LIB_DIR_$(dep)))))
 BM_UK_MAIN_SRC := $(BM_UK_MAIN_SRC_$(BM_UK_APPLICATION))
 BM_UK_MAIN_DST := $(BM_UK_MAIN_DST_$(BM_UK_APPLICATION))
-BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-arm64
+BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-$(BM_UK_ARCH)
 
 BM_UK_APP_DIR := $(BM_CATALOG_CORE_DIR)/$(BM_UK_APPLICATION)
 BM_UK_BUILD_DIR := $(BUILD_DIR)/uk/$(BM_UK_APPLICATION)
