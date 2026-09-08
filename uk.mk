@@ -13,15 +13,11 @@ BM_UK_LIB_DIR_lwip := $(BM_UK_LIBRARY_DIR)/lwip
 BM_UK_APPLICATION ?= sqlite
 BM_UK_APPLICATIONS := c-hello c-fs c-http c-nginx-client sqlite nginx
 
-ifeq ($(ARCH),aarch64)
-BM_UK_ARCH := arm64
-BM_UK_CONFIG_ARCH := arm
-else ifeq ($(ARCH),x86_64)
-BM_UK_ARCH := x86_64
-BM_UK_CONFIG_ARCH := x86_64
-else
+ifneq ($(filter aarch64 x86_64,$(ARCH)),$(ARCH))
 $(error Unsupported ARCH '$(ARCH)'; expected aarch64 or x86_64)
 endif
+
+BM_UK_ARCH := $(ARCH)
 
 BM_UK_DEPS_c-http := lwip
 BM_UK_DEPS_c-nginx-client := lwip
@@ -55,7 +51,7 @@ endif
 empty :=
 space := $(empty) $(empty)
 
-BM_UK_CONFIG := uk-carrels-$(BM_UK_APPLICATION)-$(BM_UK_CONFIG_ARCH).config
+BM_UK_CONFIG := $(BM_UK_ARCH)/uk-carrels-$(BM_UK_APPLICATION).config
 BM_UK_DEPS := $(BM_UK_DEPS_$(BM_UK_APPLICATION))
 BM_UK_UNKNOWN_DEPS := \
 	$(foreach dep,$(BM_UK_DEPS),$(if $(BM_UK_LIB_DIR_$(dep)),,$(dep)))
