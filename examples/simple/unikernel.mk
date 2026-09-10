@@ -12,7 +12,9 @@ IMAGES := \
 	eth_driver.elf \
 	network_virt_rx.elf \
 	network_virt_tx.elf \
-	network_copy.elf
+	network_copy.elf \
+	blk_driver.elf \
+	blk_virt.elf
 
 SUPPORTED_BOARDS:= \
 	qemu_virt_aarch64 \
@@ -66,6 +68,8 @@ include ${SDDF}/drivers/serial/${UART_DRIV_DIR}/serial_driver.mk
 include ${SDDF}/serial/components/serial_components.mk
 include ${SDDF}/network/components/network_components.mk
 include ${ETHERNET_DRIVER}/eth_driver.mk
+include ${SDDF}/drivers/blk/${BLK_DRIV_DIR}/blk_driver.mk
+include ${SDDF}/blk/components/blk_components.mk
 
 
 %.py: ${UK_DIR}/%.py
@@ -100,6 +104,10 @@ endif
 	$(OBJCOPY) --update-section .serial_client_config=serial_client_unikraft.data unikraft.elf
 	$(OBJCOPY) --update-section .timer_client_config=timer_client_unikraft.data unikraft.elf
 	$(OBJCOPY) --update-section .net_client_config=net_client_unikraft.data unikraft.elf
+	$(OBJCOPY) --update-section .device_resources=blk_driver_device_resources.data blk_driver.elf
+	$(OBJCOPY) --update-section .blk_driver_config=blk_driver.data blk_driver.elf
+	$(OBJCOPY) --update-section .blk_virt_config=blk_virt.data blk_virt.elf
+	$(OBJCOPY) --update-section .blk_client_config=blk_client_unikraft.data unikraft.elf
 
 $(IMAGE_FILE) $(REPORT_FILE): $(IMAGES) $(SYSTEM_FILE)
 	$(MICROKIT_TOOL) $(SYSTEM_FILE) \
@@ -107,11 +115,20 @@ $(IMAGE_FILE) $(REPORT_FILE): $(IMAGES) $(SYSTEM_FILE)
 		--config $(MICROKIT_CONFIG) -o $(IMAGE_FILE) -r $(REPORT_FILE)
 
 qemu: ${IMAGE_FILE}
-	$(QEMU) $(QEMU_ARCH_ARGS) $(QEMU_NET_ARGS) \
+	$(QEMU) $(QEMU_ARCH_ARGS) $(QEMU_NET_ARGS) $(QEMU_BLK_ARGS) \
 		-nographic \
 		-netdev user,id=netdev0$(QEMU_HOSTFWD) \
+		-drive file=$(BLK_IMAGE),if=none,format=raw,id=hd \
 		-global virtio-mmio.force-legacy=false \
 		-d guest_errors -smp 4
+
+BLK_IMAGE ?= disk.img
+BLK_IMAGE_SIZE ?= 67108864
+
+$(BLK_IMAGE):
+	$(SDDF)/tools/mkvirtdisk $@ 1 512 $(BLK_IMAGE_SIZE) GPT
+
+qemu: $(BLK_IMAGE)
 
 ${SDDF}/tools/make/board/common.mk ${SDDF_MAKEFILES} ${SDDF}/include &:
 	SDDF="$(SDDF)" $(ROOT)/scripts/ensure-sddf.sh

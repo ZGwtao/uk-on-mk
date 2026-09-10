@@ -35,6 +35,7 @@ def generate(
     serial_node = None
     timer_node = None
     ethernet_node = None
+    blk_node = None
     
     if dtb is not None:
         serial_node = dtb.node(board.serial)
@@ -43,6 +44,8 @@ def generate(
         assert timer_node is not None
         ethernet_node = dtb.node(board.ethernet)
         assert ethernet_node is not None
+        blk_node = dtb.node(board.blk)
+        assert blk_node is not None
 
     timer_driver = PD("timer_driver", "timer_driver.elf", priority=254)
     timer_system = Sddf.Timer(sdf, timer_node, timer_driver)
@@ -124,11 +127,53 @@ def generate(
         "net_copier", "network_copy.elf", priority=98, budget=20000
     )
 
+    blk_driver = PD(
+        "blk_driver", "blk_driver.elf", priority=101, stack_size=0x2000
+    )
+    blk_virt = PD("blk_virt", "blk_virt.elf", priority=100,
+                  stack_size=0x2000)
+
+    if board.arch == SystemDescription.Arch.X86_64:
+        blk_driver.add_ioport(IOPORT(0xCF8, 4, 1))
+        blk_driver.add_ioport(IOPORT(0xCFC, 4, 2))
+
+        virtio_requests = MR(
+            sdf, "virtio_blk_requests", 65536, paddr=0x5FDF0000
+        )
+        virtio_metadata = MR(
+            sdf, "virtio_blk_metadata", 65536, paddr=0x5FFF0000
+        )
+        virtio_blk_regs = MR(
+            # With virtio-net at PCI 00:02.0, QEMU q35 assigns this BAR to
+            # the following 16 KiB window for virtio-blk at 00:03.0.
+            sdf, "virtio_blk_regs", 0x4000, paddr=0xFE004000
+        )
+        for mr in (virtio_requests, virtio_metadata, virtio_blk_regs):
+            sdf.add_mr(mr)
+        blk_driver.add_map(MAP(virtio_requests, 0x20200000, "rw"))
+        blk_driver.add_map(MAP(virtio_metadata, 0x20210000, "rw"))
+        blk_driver.add_map(
+            MAP(virtio_blk_regs, 0x60000000, "rw", cached=False)
+        )
+        blk_driver.add_irq(IRQIOAPIC(
+            ioapic_id=0,
+            pin=11,
+            # Microkit resource IDs share a namespace within a PD.  Vectors
+            # 1 and 2 would collide with the PCI configuration I/O ports.
+            vector=3,
+            id=17,
+            trigger=IRQIOAPIC.Trigger.LEVEL,
+            polarity=IRQIOAPIC.Polarity.ACTIVELOW,
+        ))
+
+    blk_system = Sddf.Blk(sdf, blk_node, blk_driver, blk_virt)
+
     unikernel = create_unikernel("unikraft")
 
     serial_system.add_client(unikernel)
     timer_system.add_client(unikernel)
     net_system.add_client_with_copier(unikernel, net_copier)
+    blk_system.add_client(unikernel, partition=0)
 
     pds = [
         serial_driver,
@@ -139,6 +184,8 @@ def generate(
         net_virt_tx,
         net_virt_rx,
         net_copier,
+        blk_driver,
+        blk_virt,
         unikernel,
     ]
     for pd in pds:
@@ -150,6 +197,8 @@ def generate(
     assert timer_system.serialise_config(output_dir)
     assert net_system.connect()
     assert net_system.serialise_config(output_dir)
+    assert blk_system.connect()
+    assert blk_system.serialise_config(output_dir)
 
     with open(f"{output_dir}/{sdf_path}", "w+") as f:
         f.write(sdf.render())
