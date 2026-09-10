@@ -166,14 +166,17 @@ def generate(
             polarity=IRQIOAPIC.Polarity.ACTIVELOW,
         ))
 
-    blk_system = Sddf.Blk(sdf, blk_node, blk_driver, blk_virt)
-
     unikernel = create_unikernel("unikraft")
+
+    blk_system = Sddf.Blk(sdf, blk_node, blk_driver, blk_virt)
+    fatfs = PD("fatfs", "fatfs.elf", priority=96, stack_size=0x10000)
+    filesystem = LionsOs.FileSystem.Fat(
+        sdf, fatfs, unikernel, blk=blk_system, partition=0
+    )
 
     serial_system.add_client(unikernel)
     timer_system.add_client(unikernel)
     net_system.add_client_with_copier(unikernel, net_copier)
-    blk_system.add_client(unikernel, partition=0)
 
     pds = [
         serial_driver,
@@ -186,6 +189,7 @@ def generate(
         net_copier,
         blk_driver,
         blk_virt,
+        fatfs,
         unikernel,
     ]
     for pd in pds:
@@ -197,6 +201,8 @@ def generate(
     assert timer_system.serialise_config(output_dir)
     assert net_system.connect()
     assert net_system.serialise_config(output_dir)
+    assert filesystem.connect()
+    assert filesystem.serialise_config(output_dir)
     assert blk_system.connect()
     assert blk_system.serialise_config(output_dir)
 

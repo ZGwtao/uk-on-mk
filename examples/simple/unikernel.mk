@@ -14,7 +14,8 @@ IMAGES := \
 	network_virt_tx.elf \
 	network_copy.elf \
 	blk_driver.elf \
-	blk_virt.elf
+	blk_virt.elf \
+	fatfs.elf
 
 SUPPORTED_BOARDS:= \
 	qemu_virt_aarch64 \
@@ -24,6 +25,8 @@ TOOLCHAIN ?= clang
 
 MICROKIT_TOOL ?= $(MICROKIT_SDK)/bin/microkit
 SDDF ?= $(ROOT)/dep/sddf
+CARRELS ?= $(abspath $(ROOT)/../carrels)
+LIBMICROKITCO_PATH := $(CARRELS)/dep/libmicrokitco
 SYSTEM_FILE := uk-on-mk.system
 IMAGE_FILE := uk-on-mk.img
 REPORT_FILE := report.txt
@@ -54,6 +57,7 @@ NETWORK_COMPONENTS := $(SDDF)/network/components
 
 CFLAGS += \
 	-DSDDF_VIRTIO_PCI_TRANSPORT_SKIP_BUS_CHECK \
+	-I$(CARRELS)/include \
 	-I$(LIONSOS)/include \
 	-I$(SDDF)/include \
 	-I$(SDDF)/include/microkit
@@ -70,6 +74,16 @@ include ${SDDF}/network/components/network_components.mk
 include ${ETHERNET_DRIVER}/eth_driver.mk
 include ${SDDF}/drivers/blk/${BLK_DRIV_DIR}/blk_driver.mk
 include ${SDDF}/blk/components/blk_components.mk
+
+FAT := $(CARRELS)/components/fs/fat
+FAT_LIBC_INCLUDE := $(SDDF)/include/sddf/util/custom_libc
+include $(FAT)/fat.mk
+
+LIBMICROKITCO_LIBC_INCLUDE := $(SDDF)/include/sddf/util/custom_libc
+include $(LIBMICROKITCO_PATH)/libmicrokitco.mk
+
+fatfs.elf: fat.elf
+	cp $< $@
 
 
 %.py: ${UK_DIR}/%.py
@@ -107,7 +121,9 @@ endif
 	$(OBJCOPY) --update-section .device_resources=blk_driver_device_resources.data blk_driver.elf
 	$(OBJCOPY) --update-section .blk_driver_config=blk_driver.data blk_driver.elf
 	$(OBJCOPY) --update-section .blk_virt_config=blk_virt.data blk_virt.elf
-	$(OBJCOPY) --update-section .blk_client_config=blk_client_unikraft.data unikraft.elf
+	$(OBJCOPY) --update-section .blk_client_config=blk_client_fatfs.data fatfs.elf
+	$(OBJCOPY) --update-section .fs_server_config=fs_server_fatfs.data fatfs.elf
+	$(OBJCOPY) --update-section .fs_client_config=fs_client_unikraft.data unikraft.elf
 
 $(IMAGE_FILE) $(REPORT_FILE): $(IMAGES) $(SYSTEM_FILE)
 	$(MICROKIT_TOOL) $(SYSTEM_FILE) \

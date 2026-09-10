@@ -42,7 +42,7 @@ BM_UK_MAIN_DST_sqlite := $(BM_UK_LIB_DIR_sqlite)/main.c
 BM_UK_MAIN_SRC_nginx := $(ROOT)/apps/nginx.c
 BM_UK_MAIN_DST_nginx := $(BM_UK_LIB_DIR_nginx)/main.c
 
-BM_UK_INITRD_APPLICATIONS := c-fs sqlite nginx
+BM_UK_INITRD_APPLICATIONS := c-fs nginx
 
 ifeq ($(filter $(BM_UK_APPLICATION),$(BM_UK_APPLICATIONS)),)
 $(error Unsupported BM_UK_APPLICATION '$(BM_UK_APPLICATION)'; choose one of: $(BM_UK_APPLICATIONS))
@@ -82,6 +82,7 @@ BM_UK_MAKE_ARGS := \
 	C=$(BM_UK_BUILD_DIR)/.config \
 	L=$(BM_UK_LIBS) \
 	SDDF=$(SDDF) \
+	CARRELS=$(abspath $(ROOT)/../carrels) \
 	MICROKIT_SDK=$(MICROKIT_SDK) \
 	MICROKIT_BOARD=$(MICROKIT_BOARD) \
 	MICROKIT_CONFIG=$(MICROKIT_CONFIG) \
