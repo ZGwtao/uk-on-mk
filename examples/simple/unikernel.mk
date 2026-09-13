@@ -18,7 +18,10 @@ IMAGES := \
 	fatfs.elf
 
 SUPPORTED_BOARDS:= \
+	odroidc4 \
+	odroidc4_multikernel \
 	qemu_virt_aarch64 \
+	qemu_virt_aarch64_multikernel \
 	x86_64_generic
 
 TOOLCHAIN ?= clang
@@ -27,6 +30,7 @@ MICROKIT_TOOL ?= $(MICROKIT_SDK)/bin/microkit
 SDDF ?= $(ROOT)/dep/sddf
 CARRELS ?= $(abspath $(ROOT)/../carrels)
 LIBMICROKITCO_PATH := $(CARRELS)/dep/libmicrokitco
+SDDF_BOARD := $(patsubst %_multikernel,%,$(MICROKIT_BOARD))
 SYSTEM_FILE := uk-on-mk.system
 IMAGE_FILE := uk-on-mk.img
 REPORT_FILE := report.txt
@@ -35,7 +39,7 @@ QEMU_GUEST_PORT ?= 80
 # Only network services need a host forwarding rule.  Omitting it for
 # non-network applications avoids failing QEMU when a host service owns 8080.
 QEMU_HOSTFWD :=
-ifneq ($(filter c-http nginx,$(BM_UK_APPLICATION)),)
+ifneq ($(filter c-http nginx redis memcached,$(BM_UK_APPLICATION)),)
 QEMU_HOSTFWD := ,hostfwd=tcp::$(QEMU_HOST_PORT)-:$(QEMU_GUEST_PORT)
 endif
 
@@ -98,11 +102,11 @@ FORCE:
 $(SYSTEM_FILE): $(METAPROGRAM) $(IMAGES) $(DTB)
 ifneq ($(strip $(DTS)),)
 	$(PYTHON) -B \
-	    $(METAPROGRAM) --sddf $(SDDF) --board $(MICROKIT_BOARD) \
+	    $(METAPROGRAM) --sddf $(SDDF) --board $(SDDF_BOARD) \
 	    --dtb $(DTB) --output . --sdf $(SYSTEM_FILE) --objcopy $(OBJCOPY)
 else
 	$(PYTHON) -B \
-	    $(METAPROGRAM) --sddf $(SDDF) --board $(MICROKIT_BOARD) \
+	    $(METAPROGRAM) --sddf $(SDDF) --board $(SDDF_BOARD) \
 	    --output . --sdf $(SYSTEM_FILE) --objcopy $(OBJCOPY)
 endif
 	$(OBJCOPY) --update-section .device_resources=ethernet_driver_device_resources.data eth_driver.elf
