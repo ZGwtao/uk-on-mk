@@ -9,20 +9,27 @@ BM_UK_LIB_DIR_musl := $(BM_UK_LIBRARY_DIR)/musl
 BM_UK_LIB_DIR_sqlite := $(BM_UK_LIBRARY_DIR)/sqlite
 BM_UK_LIB_DIR_nginx := $(BM_UK_LIBRARY_DIR)/nginx
 BM_UK_LIB_DIR_lwip := $(BM_UK_LIBRARY_DIR)/lwip
+BM_UK_LIB_DIR_redis := $(BM_UK_LIBRARY_DIR)/redis
+BM_UK_LIB_DIR_tinyalloc := $(BM_UK_LIBRARY_DIR)/tinyalloc
 
 BM_UK_APPLICATION ?= sqlite
-BM_UK_APPLICATIONS := c-hello c-fs c-http c-nginx-client sqlite nginx
+BM_UK_APPLICATIONS := c-hello c-fs c-http c-nginx-client sqlite nginx redis memcached
 
 ifneq ($(filter aarch64 x86_64,$(ARCH)),$(ARCH))
 $(error Unsupported ARCH '$(ARCH)'; expected aarch64 or x86_64)
 endif
 
 BM_UK_ARCH := $(ARCH)
+BM_UK_PAYLOAD_ARCH_aarch64 := arm64
+BM_UK_PAYLOAD_ARCH_x86_64 := x86_64
+BM_UK_PAYLOAD_ARCH := $(BM_UK_PAYLOAD_ARCH_$(BM_UK_ARCH))
 
 BM_UK_DEPS_c-http := lwip
 BM_UK_DEPS_c-nginx-client := lwip
 BM_UK_DEPS_sqlite := musl sqlite
 BM_UK_DEPS_nginx := musl nginx lwip
+BM_UK_DEPS_redis := musl redis lwip tinyalloc
+BM_UK_DEPS_memcached := musl lwip
 
 BM_UK_MAIN_SRC_c-hello := $(ROOT)/apps/c-hello.c
 BM_UK_MAIN_DST_c-hello := $(BM_CATALOG_CORE_DIR)/c-hello/hello.c
@@ -42,7 +49,10 @@ BM_UK_MAIN_DST_sqlite := $(BM_UK_LIB_DIR_sqlite)/main.c
 BM_UK_MAIN_SRC_nginx := $(ROOT)/apps/nginx.c
 BM_UK_MAIN_DST_nginx := $(BM_UK_LIB_DIR_nginx)/main.c
 
-BM_UK_INITRD_APPLICATIONS := c-fs sqlite nginx
+BM_UK_MAIN_SRC_redis := $(ROOT)/apps/redis.c
+BM_UK_MAIN_DST_redis := $(BM_UK_LIB_DIR_redis)/main.c
+
+BM_UK_INITRD_APPLICATIONS := c-fs sqlite nginx redis
 
 ifeq ($(filter $(BM_UK_APPLICATION),$(BM_UK_APPLICATIONS)),)
 $(error Unsupported BM_UK_APPLICATION '$(BM_UK_APPLICATION)'; choose one of: $(BM_UK_APPLICATIONS))
@@ -64,7 +74,7 @@ BM_UK_LIBS := $(subst $(space),:,$(strip \
 	$(foreach dep,$(BM_UK_DEPS),$(BM_UK_LIB_DIR_$(dep)))))
 BM_UK_MAIN_SRC := $(BM_UK_MAIN_SRC_$(BM_UK_APPLICATION))
 BM_UK_MAIN_DST := $(BM_UK_MAIN_DST_$(BM_UK_APPLICATION))
-BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-$(BM_UK_ARCH)
+BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-$(BM_UK_PAYLOAD_ARCH)
 
 BM_UK_APP_DIR := $(BM_CATALOG_CORE_DIR)/$(BM_UK_APPLICATION)
 BM_UK_BUILD_DIR := $(BUILD_DIR)/uk/$(BM_UK_APPLICATION)
@@ -109,7 +119,11 @@ uk-catalog-setup:
 	cd $(BM_UK_APP_DIR) && ./setup.sh
 
 uk-prepare-main: $(BM_UK_MAIN_SRC) | uk-catalog-setup
+ifneq ($(strip $(BM_UK_MAIN_SRC)),)
 	cp $< $(BM_UK_MAIN_DST)
+else
+	@:
+endif
 
 ifneq ($(filter $(BM_UK_APPLICATION),$(BM_UK_INITRD_APPLICATIONS)),)
 uk-initrd:
