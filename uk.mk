@@ -111,7 +111,7 @@ endif
 # So, "env -u variables"...
 uk-build: $(BM_UK_CONFIGURED) libsddf_util.a $(BM_UK_INITRD_PREREQUISITE) uk-prepare-main
 	env -u BUILD_DIR -u MAKEFLAGS -u MAKEOVERRIDES \
-		$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS)
+		$(MAKE) -j$(shell nproc) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS)
 
 uk-catalog-setup:
 	mkdir -p $(BM_CATALOG_CORE_DIR)/repos/libs
@@ -144,7 +144,7 @@ $(BM_UK_CONFIGURED): $(BM_UK_CONFIG_SRC) $(ROOT)/uk.mk | uk-catalog-setup
 	printf 'CONFIG_LIBVFSCORE_AUTOMOUNT_EINITRD_PATH="%s"\n' \
 		'$(BM_UK_INITRD)' >> $(BM_UK_DEFCONFIG)
 	env -u BUILD_DIR -u MAKEFLAGS -u MAKEOVERRIDES \
-		$(MAKE) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS) \
+		$(MAKE) -j$(shell nproc) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS) \
 		UK_DEFCONFIG=$(BM_UK_DEFCONFIG) defconfig
 	touch $@
 
