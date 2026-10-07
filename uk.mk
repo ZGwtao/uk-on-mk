@@ -79,6 +79,7 @@ BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-$(BM_UK_PAYLOAD_ARCH)
 BM_UK_APP_DIR := $(BM_CATALOG_CORE_DIR)/$(BM_UK_APPLICATION)
 BM_UK_BUILD_DIR := $(BUILD_DIR)/uk/$(BM_UK_APPLICATION)
 BM_UK_BUILT_ELF := $(BM_UK_BUILD_DIR)/$(BM_UK_PAYLOAD_ELF)
+BM_UK_OUTPUT_ELF := $(BM_UK_BUILD_DIR)/$(BM_UK_APPLICATION).elf
 BM_UK_CONFIG_SRC := $(UK_CONFIG_DIR)/$(BM_UK_CONFIG)
 BM_UK_CONFIGURED := $(BM_UK_BUILD_DIR)/.configured
 BM_UK_DEFCONFIG := $(BM_UK_BUILD_DIR)/defconfig
@@ -112,6 +113,7 @@ endif
 uk-build: $(BM_UK_CONFIGURED) libsddf_util.a $(BM_UK_INITRD_PREREQUISITE) uk-prepare-main
 	env -u BUILD_DIR -u MAKEFLAGS -u MAKEOVERRIDES \
 		$(MAKE) -j$(shell nproc) -C $(BM_UNIKRAFT_DIR) $(BM_UK_MAKE_ARGS)
+	cp $(BM_UK_BUILT_ELF) $(BM_UK_OUTPUT_ELF)
 
 uk-catalog-setup:
 	mkdir -p $(BM_CATALOG_CORE_DIR)/repos/libs
@@ -149,7 +151,7 @@ $(BM_UK_CONFIGURED): $(BM_UK_CONFIG_SRC) $(ROOT)/uk.mk | uk-catalog-setup
 	touch $@
 
 unikraft.elf: uk-build
-	cp $(BM_UK_BUILT_ELF) $@
+	cp $(BM_UK_OUTPUT_ELF) $@
 
 initrd.cpio: uk-initrd
 ifneq ($(filter $(BM_UK_APPLICATION),$(BM_UK_INITRD_APPLICATIONS)),)
