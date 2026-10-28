@@ -23,7 +23,10 @@ def create_unikernel(name: str):
     unikernel = PD(f"{name}", f"{name}.elf", priority=50, stack_size=0x10000)
     uk_heap = MR(sdf, f"{name}/uk_heap", 0x4000000)
     sdf.add_mr(uk_heap)
-    unikernel.add_map(MAP(uk_heap, 0x200000000, perms="rw", cached="true"))
+    unikernel.add_map(MAP(
+        uk_heap, 0x200000000, perms="rw", cached="true",
+        setvar_vaddr="carrels_heap_base", setvar_size="carrels_heap_size",
+    ))
     return unikernel
 
 

@@ -18,6 +18,11 @@ $(error Unsupported ARCH '$(ARCH)'; expected aarch64 or x86_64)
 endif
 
 BM_UK_ARCH := $(ARCH)
+ifeq ($(BM_UK_ARCH),aarch64)
+BM_APP_ARCH := arm64
+else
+BM_APP_ARCH := $(BM_UK_ARCH)
+endif
 
 BM_UK_DEPS_c-http := lwip
 BM_UK_DEPS_c-nginx-client := lwip
@@ -64,7 +69,7 @@ BM_UK_LIBS := $(subst $(space),:,$(strip \
 	$(foreach dep,$(BM_UK_DEPS),$(BM_UK_LIB_DIR_$(dep)))))
 BM_UK_MAIN_SRC := $(BM_UK_MAIN_SRC_$(BM_UK_APPLICATION))
 BM_UK_MAIN_DST := $(BM_UK_MAIN_DST_$(BM_UK_APPLICATION))
-BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-$(BM_UK_ARCH)
+BM_UK_PAYLOAD_ELF := $(BM_UK_APPLICATION)_default-$(BM_APP_ARCH)
 
 BM_UK_APP_DIR := $(BM_CATALOG_CORE_DIR)/$(BM_UK_APPLICATION)
 BM_UK_BUILD_DIR := $(BUILD_DIR)/uk/$(BM_UK_APPLICATION)
