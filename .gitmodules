@@ -10,3 +10,11 @@
 	path = dep/solo5
 	url = https://github.com/ZGwtao/solo5.git
 	branch = main
+[submodule "dep/demikernel"]
+	path = dep/demikernel
+	url = https://github.com/ZGwtao/demikernel.git
+	branch = dev
+[submodule "dep/rust-seL4"]
+	path = dep/rust-seL4
+	url = https://github.com/seL4/rust-sel4.git
+	branch = main
