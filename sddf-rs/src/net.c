@@ -11,6 +11,11 @@ net_client_config_t demi_sddf_net_config;
 static net_queue_handle_t rx;
 static net_queue_handle_t tx;
 
+const uint8_t *demi_sddf_net_get_mac(void)
+{
+    return demi_sddf_net_config.mac_addr.addr;
+}
+
 size_t demi_sddf_net_buffer_size(void)
 {
     return NET_BUFFER_SIZE;
