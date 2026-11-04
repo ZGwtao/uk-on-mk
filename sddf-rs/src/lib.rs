@@ -1,6 +1,7 @@
 #![no_std]
 
 unsafe extern "C" {
+    fn demi_sddf_net_get_mac() -> *const u8;
     fn demi_sddf_net_buffer_size() -> usize;
     fn demi_sddf_net_init() -> i32;
     fn demi_sddf_net_send(data: *const u8, len: usize) -> i32;
@@ -9,6 +10,12 @@ unsafe extern "C" {
 
 pub fn net_buffer_size() -> usize {
     unsafe { demi_sddf_net_buffer_size() }
+}
+
+pub fn net_mac() -> [u8; 6] {
+    let mut mac = [0; 6];
+    unsafe { core::ptr::copy_nonoverlapping(demi_sddf_net_get_mac(), mac.as_mut_ptr(), mac.len()) };
+    mac
 }
 
 pub fn net_init() -> i32 {
