@@ -38,6 +38,7 @@ pub mod hash {
 }
 
 pub mod process;
+pub mod io;
 
 pub mod alloc {
     pub use crate::rust_alloc::alloc::{alloc, dealloc, handle_alloc_error, Global};
