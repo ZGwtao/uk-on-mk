@@ -37,6 +37,8 @@ pub mod hash {
     pub type RandomState = hashbrown::DefaultHashBuilder;
 }
 
+pub mod process;
+
 pub mod alloc {
     pub use crate::rust_alloc::alloc::{alloc, dealloc, handle_alloc_error, Global};
     pub use core::alloc::*;
