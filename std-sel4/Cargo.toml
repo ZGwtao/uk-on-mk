@@ -2,3 +2,7 @@
 name = "std-sel4"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+hashbrown = { version = "0.17", default-features = false, features = ["default-hasher"] }
+sddf-rs = { path = "../sddf-rs" }
