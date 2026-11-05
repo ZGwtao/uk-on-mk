@@ -12,6 +12,21 @@ pub use core::{
 };
 pub use rust_alloc::{boxed, rc, string, sync, vec};
 
+mod local_key;
+pub use local_key::LocalKey;
+
+#[macro_export]
+macro_rules! thread_local {
+    ($(#[$attr:meta])* $vis:vis static $name:ident: $ty:ty = const { $init:expr }; ) => {
+        $crate::thread_local! { $(#[$attr])* $vis static $name: $ty = $init; }
+    };
+    ($(#[$attr:meta])* $vis:vis static $name:ident: $ty:ty = $init:expr; ) => {
+        $(#[$attr])*
+        #[thread_local]
+        $vis static $name: $crate::LocalKey<$ty> = unsafe { $crate::LocalKey::new(|| $init) };
+    };
+}
+
 pub mod collections {
     pub use crate::rust_alloc::collections::*;
     pub use hashbrown::{hash_map, hash_set, HashMap, HashSet};
