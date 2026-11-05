@@ -5,6 +5,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+// The rust-seL4 Microkit runtime uses this same fixed IPC buffer address.
+seL4_IPCBuffer *__sel4_ipc_buffer =
+    (seL4_IPCBuffer *)(seL4_UserVSpaceTop & ~((1UL << seL4_PageBits) - 1));
+
 __attribute__((section(".net_client_config"), used))
 net_client_config_t demi_sddf_net_config;
 
