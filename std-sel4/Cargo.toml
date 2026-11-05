@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 hashbrown = { version = "0.17", default-features = false, features = ["default-hasher"] }
 sddf-rs = { path = "../sddf-rs" }
+sel4-microkit-base = { path = "../dep/rust-seL4/crates/sel4-microkit/base" }
