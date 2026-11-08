@@ -25,6 +25,16 @@ size_t demi_sddf_net_buffer_size(void)
     return NET_BUFFER_SIZE;
 }
 
+size_t demi_sddf_net_tx_buffer_count(void)
+{
+    return demi_sddf_net_config.tx.num_buffers;
+}
+
+size_t demi_sddf_net_rx_buffer_count(void)
+{
+    return demi_sddf_net_config.rx.num_buffers;
+}
+
 static const uint8_t *get_rx_data(net_buff_desc_t desc)
 {
     return (const uint8_t *)demi_sddf_net_config.rx_data.vaddr + desc.io_or_offset;
