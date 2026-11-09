@@ -3,6 +3,8 @@
 unsafe extern "C" {
     fn demi_sddf_net_get_mac() -> *const u8;
     fn demi_sddf_net_buffer_size() -> usize;
+    fn demi_sddf_net_tx_buffer_count() -> usize;
+    fn demi_sddf_net_rx_buffer_count() -> usize;
     fn demi_sddf_net_init() -> i32;
     fn demi_sddf_net_send(data: *const u8, len: usize) -> i32;
     fn demi_sddf_net_recv_copy(data: *mut u8, capacity: usize) -> i32;
@@ -13,6 +15,14 @@ unsafe extern "C" {
 
 pub fn net_buffer_size() -> usize {
     unsafe { demi_sddf_net_buffer_size() }
+}
+
+pub fn tx_buffer_count() -> usize {
+    unsafe { demi_sddf_net_tx_buffer_count() }
+}
+
+pub fn rx_buffer_count() -> usize {
+    unsafe { demi_sddf_net_rx_buffer_count() }
 }
 
 pub fn net_mac() -> [u8; 6] {
