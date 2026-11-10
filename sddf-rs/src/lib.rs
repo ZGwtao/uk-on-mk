@@ -1,5 +1,10 @@
 #![no_std]
 
+extern crate alloc;
+
+mod sbuf;
+pub use sbuf::SBuf;
+
 unsafe extern "C" {
     fn demi_sddf_net_get_mac() -> *const u8;
     fn demi_sddf_net_buffer_size() -> usize;
@@ -22,13 +27,13 @@ unsafe extern "C" {
 /// Offset is the index of the Rx buffer (i.e., io_or_offset)
 /// Data is the pointer (vaddr) that points to the base of the Rx buffer
 /// Len is the length of the valid bytes of the frame in the Rx buffer
-pub struct RxReference {
+pub struct RxBufferHandle {
     offset: u64,
     data: *mut u8,
     len: u16,
 }
 
-impl RxReference {
+impl RxBufferHandle {
     pub fn data_ptr(&self) -> *mut u8 {
         self.data
     }
@@ -38,25 +43,25 @@ impl RxReference {
     }
 }
 
-pub fn rx_acquire() -> Result<Option<RxReference>, ()> {
+pub fn rx_acquire() -> Result<Option<RxBufferHandle>, ()> {
     let mut offset = 0;
     let mut data = core::ptr::null_mut();
     let mut len = 0;
     match unsafe { demi_sddf_net_rx_acquire(&mut offset, &mut data, &mut len) } {
         0 => Ok(None),
-        1 => Ok(Some(RxReference { offset, data, len })),
+        1 => Ok(Some(RxBufferHandle { offset, data, len })),
         _ => Err(()),
     }
 }
 
-impl Clone for RxReference {
+impl Clone for RxBufferHandle {
     fn clone(&self) -> Self {
         unsafe { demi_sddf_net_rx_retain(self.offset) };
         Self { offset: self.offset, data: self.data, len: self.len }
     }
 }
 
-impl Drop for RxReference {
+impl Drop for RxBufferHandle {
     fn drop(&mut self) {
         unsafe { demi_sddf_net_rx_release(self.offset) };
     }
@@ -65,12 +70,12 @@ impl Drop for RxReference {
 /// Offset is the index of the TX buffer (i.e., io_or_offset)
 /// Data is the pointer (vaddr) that points to the base of the TX buffer
 /// (No length is provided, as the TX buffer is empty when acquired)
-pub struct TxReference {
+pub struct TxBufferHandle {
     offset: Option<u64>,
     data: *mut u8,
 }
 
-impl TxReference {
+impl TxBufferHandle {
     pub fn data_ptr(&self) -> *mut u8 {
         self.data
     }
@@ -97,23 +102,23 @@ impl TxReference {
 
 }
 
-pub fn tx_acquire() -> Option<TxReference> {
+pub fn tx_acquire() -> Option<TxBufferHandle> {
     let mut offset = 0;
     let mut data = core::ptr::null_mut();
     if unsafe { demi_sddf_net_tx_acquire(&mut offset, &mut data) } != 0 {
         return None;
     }
-    Some(TxReference { offset: Some(offset), data })
+    Some(TxBufferHandle { offset: Some(offset), data })
 }
 
-impl Clone for TxReference {
+impl Clone for TxBufferHandle {
     fn clone(&self) -> Self {
         unsafe { demi_sddf_net_tx_retain(self.offset.unwrap()) };
         Self { offset: self.offset, data: self.data }
     }
 }
 
-impl Drop for TxReference {
+impl Drop for TxBufferHandle {
     fn drop(&mut self) {
         if let Some(offset) = self.offset.take() {
             unsafe { demi_sddf_net_tx_release(offset) };
