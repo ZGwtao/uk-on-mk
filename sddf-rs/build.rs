@@ -34,6 +34,7 @@ fn main() {
         objects.push(object);
     }
     let archive = out.join("libsddf_rs.a");
+    let _ = std::fs::remove_file(&archive);
     let mut ar = Command::new("llvm-ar");
     ar.arg("crs").arg(&archive).args(&objects);
     assert!(ar.status().unwrap().success());
