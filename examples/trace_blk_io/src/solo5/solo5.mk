@@ -1,27 +1,33 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 APP := solo5_bench
-export COROS READS_PER_CORO LIBMICROKITCO_PATH
+export COROS COMPUTE_COROS COREMARK_ITERS_PER_YIELD BENCH_SECONDS LIBMICROKITCO_PATH COREMARK_DIR
 include $(ROOT)/solo5.mk
+include $(TOP)/coremark.mk
 
 TAR_DIR := $(STAGE_DIR)/tests/$(APP)
 SRC_MK  := $(TOP)/src/solo5/GNUmakefile
 TAR_MK  := $(TAR_DIR)/GNUmakefile
 APP_SRC := \
 	$(TOP)/src/solo5/bench.c \
+	$(TOP)/src/solo5/coremark.c \
 	$(TOP)/src/solo5/manifest.json \
 	$(TOP)/include/common/block_io.h \
-	$(TOP)/include/solo5/console.h
+	$(TOP)/include/common/result.h \
+	$(TOP)/include/solo5/console.h \
+	$(TOP)/include/solo5/coremark_runner.h
 
 LIBCO_FILES := $(addprefix $(LIBMICROKITCO_PATH)/libco/,libco.c libco.h aarch64.c settings.h)
 
 .PHONY: stage-app stage-libco
 
 
-stage-app: solo5-core $(APP_SRC)
+stage-app: solo5-core $(APP_SRC) coremark.o
 	mkdir -p $(TAR_DIR)
 	cp $(APP_SRC) $(TAR_DIR)/
+	cp coremark.o $(TAR_DIR)/
 	mv $(TAR_DIR)/bench.c $(TAR_DIR)/solo5_bench.c
+	mv $(TAR_DIR)/coremark.c $(TAR_DIR)/solo5_coremark.c
 
 stage-libco: stage-app $(LIBCO_FILES)
 	cp $(LIBCO_FILES) $(TAR_DIR)/

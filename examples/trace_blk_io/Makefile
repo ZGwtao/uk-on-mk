@@ -16,8 +16,10 @@ export EXAMPLE_DIR := $(abspath .)
 export MICROKIT_CONFIG ?= debug
 export MODE ?= native
 
-export COROS ?= 16
-export READS_PER_CORO ?= 256
+export COROS ?= 8
+export COMPUTE_COROS ?= 1
+export COREMARK_ITERS_PER_YIELD ?= 1
+export BENCH_SECONDS ?= 10
 
 export LIBMICROKITCO_PATH ?= $(ROOT)/dep/libmicrokitco
 

@@ -18,6 +18,8 @@ TOOLCHAIN ?= clang
 SDDF ?= $(ROOT)/dep/sddf
 PYTHON ?= $(ROOT)/pyenv/bin/python
 
+COREMARK_DIR := $(ROOT)/dep/coremark
+
 SYSTEM_FILE := trace-blk-io.system
 IMAGE_FILE := $(MODE).img
 REPORT_FILE := report-$(MODE).txt
@@ -37,14 +39,6 @@ include $(SDDF)/serial/components/serial_components.mk
 include $(SDDF)/blk/components/blk_components.mk
 
 all: $(IMAGE_FILE)
-
-# Both modes share a build directory and the client.elf filename. Keep only
-# the current mode stamp so switching modes rebuilds client.elf before the
-# system configuration and image are regenerated.
-.mode-$(MODE):
-	$(RM) .mode-native .mode-solo5
-	touch $@
-client.elf: .mode-$(MODE)
 
 include $(TOP)/src/$(MODE)/$(MODE).mk
 
@@ -93,4 +87,4 @@ endif
 disk: $(DISK_IMAGE)
 clean::
 	$(RM) $(IMAGES) $(SYSTEM_FILE) native.img solo5.img report-*.txt \
-		.mode-native .mode-solo5 $(DTB)
+		coremark.o $(DTB)

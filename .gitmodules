@@ -22,3 +22,7 @@
 	path = dep/libmicrokitco
 	url = https://github.com/au-ts/libmicrokitco.git
 	branch = main
+[submodule "dep/coremark"]
+	path = dep/coremark
+	url = https://github.com/ZGwtao/coremark.git
+	branch = main
