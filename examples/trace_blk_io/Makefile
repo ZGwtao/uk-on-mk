@@ -20,6 +20,10 @@ export COROS ?= 8
 export COMPUTE_COROS ?= 1
 export COREMARK_ITERS_PER_YIELD ?= 1
 export BENCH_SECONDS ?= 10
+# Solo5: run a compute slice after each I/O when 1; when 0, run one
+# compute slice after all I/O coroutines. Default to exposing the gap
+# between synchronous reads while the unikernel computes.
+export SOLO5_INTERLEAVE_COMPUTE ?= 1
 
 export LIBMICROKITCO_PATH ?= $(ROOT)/dep/libmicrokitco
 

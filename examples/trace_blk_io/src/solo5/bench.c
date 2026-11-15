@@ -85,9 +85,19 @@ int solo5_app_main(const struct solo5_start_info *start_info)
             running_coro = coro;
             co_switch(coros[coro]);
             read_run_complete(&read_run);
+#if SOLO5_INTERLEAVE_COMPUTE
+            // Run one computation slice before submitting the next I/O.
+            coremark_runner_resume_workers();
+#endif
         }
+#if SOLO5_INTERLEAVE_COMPUTE
+        // CoreMark may still need to finish after the timed I/O run stops.
+        if (!read_run_is_active(&read_run))
+            coremark_runner_resume_workers();
+#else
         // Schedule computation coro to execute
         coremark_runner_resume_workers();
+#endif
     }
     for (;;) {}
 }
