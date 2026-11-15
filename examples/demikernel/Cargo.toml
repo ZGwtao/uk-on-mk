@@ -1,0 +1,21 @@
+[package]
+name = "demikernel-sddf-example"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "demikernel"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { version = "1.0.89", default-features = false }
+demikernel = { path = "../../dep/demikernel", default-features = false }
+sddf-rs = { path = "../../sddf-rs" }
+sel4-microkit = { path = "../../dep/rust-seL4/crates/sel4-microkit", features = ["alloc"] }
+std-sel4 = { path = "../../std-sel4" }
+
+[workspace]
+
+[features]
+default = ["catlions-libos"]
+catlions-libos = ["demikernel/catlions-libos"]
