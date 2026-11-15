@@ -7,14 +7,19 @@ endif
 ifeq ($(strip $(MICROKIT_BOARD)),)
 $(error MICROKIT_BOARD must be specified)
 endif
-BUILD_DIR ?= build
+
+DEMKI_APP ?= udp-echo
+DEMKI_MODE ?= server
+BUILD_DIR ?= build/$(DEMKI_APP)/$(DEMKI_MODE)
+
 override BUILD_DIR := $(abspath ${BUILD_DIR})
 override MICROKIT_SDK := $(abspath ${MICROKIT_SDK})
 
 export ROOT := $(abspath ../..)
 export EXAMPLE_DIR := $(abspath .)
 export MICROKIT_CONFIG ?= debug
-export DEMKI_APP ?= udp-echo
+export DEMKI_APP
+export DEMKI_MODE
 
 IMAGE_FILE := $(BUILD_DIR)/demikernel.img
 

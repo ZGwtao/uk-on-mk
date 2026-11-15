@@ -19,3 +19,12 @@ std-sel4 = { path = "../../std-sel4" }
 [features]
 default = ["catlions-libos"]
 catlions-libos = ["demikernel/catlions-libos"]
+
+app-udp-echo = []
+app-udp-dump = []
+app-udp-ping-pong = []
+app-udp-pktgen = []
+app-udp-push-pop = []
+app-udp-relay = []
+
+mode-client = []
