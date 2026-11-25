@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # catalog-core application integration.
+UK_CATALOG_APP_DIR := $(UK_ON_MK_DIR)/apps/catalog
 BM_CATALOG_CORE_DIR := $(UK_ON_MK_DIR)/dep/catalog-core
-UK_CATALOG_CONFIG_DIR := $(UK_ON_MK_DIR)/config/uk
+UK_CATALOG_CONFIG_DIR := $(UK_CATALOG_APP_DIR)/config
 BM_UK_LIBRARY_DIR := $(BM_CATALOG_CORE_DIR)/repos/libs
 BM_UK_LIB_DIR_musl := $(BM_UK_LIBRARY_DIR)/musl
 BM_UK_LIB_DIR_sqlite := $(BM_UK_LIBRARY_DIR)/sqlite
@@ -15,17 +16,17 @@ BM_UK_DEPS_c-http := lwip
 BM_UK_DEPS_c-nginx-client := lwip
 BM_UK_DEPS_sqlite := musl sqlite
 BM_UK_DEPS_nginx := musl nginx lwip
-BM_UK_MAIN_SRC_c-hello := $(UK_ON_MK_DIR)/apps/c-hello.c
+BM_UK_MAIN_SRC_c-hello := $(UK_CATALOG_APP_DIR)/c-hello.c
 BM_UK_MAIN_DST_c-hello := $(BM_CATALOG_CORE_DIR)/c-hello/hello.c
-BM_UK_MAIN_SRC_c-fs := $(UK_ON_MK_DIR)/apps/c-fs.c
+BM_UK_MAIN_SRC_c-fs := $(UK_CATALOG_APP_DIR)/c-fs.c
 BM_UK_MAIN_DST_c-fs := $(BM_CATALOG_CORE_DIR)/c-fs/cat.c
-BM_UK_MAIN_SRC_c-http := $(UK_ON_MK_DIR)/apps/c-http.c
+BM_UK_MAIN_SRC_c-http := $(UK_CATALOG_APP_DIR)/c-http.c
 BM_UK_MAIN_DST_c-http := $(BM_CATALOG_CORE_DIR)/c-http/server.c
-BM_UK_MAIN_SRC_c-nginx-client := $(UK_ON_MK_DIR)/apps/nginx-client.c
+BM_UK_MAIN_SRC_c-nginx-client := $(UK_CATALOG_APP_DIR)/nginx-client.c
 BM_UK_MAIN_DST_c-nginx-client := $(BM_CATALOG_CORE_DIR)/c-nginx-client/client.c
-BM_UK_MAIN_SRC_sqlite := $(UK_ON_MK_DIR)/apps/sqlite.c
+BM_UK_MAIN_SRC_sqlite := $(UK_CATALOG_APP_DIR)/sqlite.c
 BM_UK_MAIN_DST_sqlite := $(BM_UK_LIB_DIR_sqlite)/main.c
-BM_UK_MAIN_SRC_nginx := $(UK_ON_MK_DIR)/apps/nginx.c
+BM_UK_MAIN_SRC_nginx := $(UK_CATALOG_APP_DIR)/nginx.c
 BM_UK_MAIN_DST_nginx := $(BM_UK_LIB_DIR_nginx)/main.c
 BM_UK_INITRD_APPLICATIONS := c-fs sqlite nginx
 
@@ -82,7 +83,7 @@ uk-catalog-initrd:
 	rm -f $(BM_UK_INITRD)
 	$(BM_UK_MKCPIO) $(BM_UK_INITRD) $(BM_UK_ROOTFS_DIR)
 
-$(BM_UK_CONFIGURED): $(BM_UK_CONFIG_SRC) $(UK_ON_MK_DIR)/apps/catalog.mk $(UK_ON_MK_DIR)/uk.mk | uk-catalog-setup
+$(BM_UK_CONFIGURED): $(BM_UK_CONFIG_SRC) $(UK_CATALOG_APP_DIR)/catalog.mk $(UK_ON_MK_DIR)/uk.mk | uk-catalog-setup
 	$(call uk_unikraft_configure,$(BM_UK_CONFIG_SRC),$(BM_UK_APP_DIR),$(BM_UK_BUILD_DIR),$(BM_UK_LIBS),$(BM_UK_INITRD),$@)
 
 # Compatibility aliases for existing uk-on-mk consumers.

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # Shared Unikraft build primitives. Application and service policy lives in
-# apps/catalog.mk and services/services.mk respectively.
+# apps/apps.mk and services/services.mk respectively.
 ifeq ($(strip $(UK_ON_MK_DIR)),)
 UK_ON_MK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 endif
@@ -59,5 +59,5 @@ define uk_unikraft_configure
 	touch $(strip $(6))
 endef
 
-include $(UK_ON_MK_DIR)/apps/catalog.mk
+include $(UK_ON_MK_DIR)/apps/apps.mk
 include $(UK_ON_MK_DIR)/services/services.mk
