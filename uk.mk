@@ -59,5 +59,8 @@ define ukf_cfg
 	touch $(strip $(6))
 endef
 
+UKF_ENABLE_APPS ?= y
+ifneq ($(strip $(UKF_ENABLE_APPS)),)
 include $(UK_ON_MK_DIR)/apps/apps.mk
+endif
 include $(UK_ON_MK_DIR)/services/services.mk
