@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+UKF_APP_LIBS := $(CATALOG_LIB_DIR)/musl:$(CATALOG_LIB_DIR)/sqlite
+UKF_APP_MAIN_VAR := LIBSQLITE_MAIN
+UKF_APP_NEEDS_INITRD := y

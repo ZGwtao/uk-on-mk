@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
-BM_UK_SERVICE ?=
+TARGET_SVC ?=
 
 # $(1): service name; $(2): service-specific make arguments supplied by the
 # caller. Service requirements (for example LIONSOS for RAMFS) therefore do
 # not leak into the shared Unikraft or catalog-application interfaces.
-define uk_build_service
+define ukf_build_svc
 	$(MAKE) -f $(UK_ON_MK_DIR)/uk.mk \
-		$(BM_UK_COMMON_MAKE_ARGS) \
+		$(UKF_COMMON_ARGS) \
 		UK_ON_MK_DIR=$(UK_ON_MK_DIR) \
 		BUILD_DIR=$(BUILD_DIR) \
 		ARCH=$(ARCH) \
-		BM_UK_SERVICE=$(1) $(2) uk-service-build -j4
+		TARGET_SVC=$(1) $(2) uk-service-build -j4
 endef
 
 # Service makefiles publish their own top-level build units. Their selected
@@ -21,42 +21,41 @@ include $(UK_ON_MK_DIR)/services/ramfs/ramfs.mk
 
 # Validate a concrete service only for a service build. Keeping an empty
 # selection empty means catalog applications do not inherit service inputs.
-ifneq ($(strip $(BM_UK_SERVICE)),)
-ifneq ($(BM_UK_SERVICE),ramfs)
-$(error Unsupported BM_UK_SERVICE '$(BM_UK_SERVICE)')
+ifneq ($(strip $(TARGET_SVC)),)
+ifneq ($(TARGET_SVC),ramfs)
+$(error Unsupported TARGET_SVC '$(TARGET_SVC)')
 endif
 endif
 
-ifneq ($(strip $(BM_UK_SERVICE)),)
-UK_SERVICE_BUILD 		?= $(BUILD_DIR)/uk/$(BM_UK_SERVICE)
-UK_SERVICE_ROOTFS_DIR 	?= $(UK_SERVICE_DIR)/rootfs
-UK_SERVICE_INITRD 		:= $(UK_SERVICE_BUILD)/initrd.cpio
-UK_SERVICE_CONFIG_STAMP := $(UK_SERVICE_BUILD)/.configured
-UK_SERVICE_PAYLOAD_ELF 	:= $(UK_SERVICE_BUILD)/$(UK_SERVICE_PAYLOAD_NAME)
-UK_SERVICE_ELF 			:= $(UK_SERVICE_BUILD)/$(UK_SERVICE_OUTPUT_NAME).elf
+ifneq ($(strip $(TARGET_SVC)),)
+UKF_SVC_BUILD 	?= $(BUILD_DIR)/uk/$(TARGET_SVC)
+UKF_SVC_ROOTFS 	?= $(UKF_SVC_DIR)/rootfs
+UKF_SVC_INITRD 	:= $(UKF_SVC_BUILD)/initrd.cpio
+UKF_SVC_CFG 		:= $(UKF_SVC_BUILD)/.cfg
+UKF_SVC_PAYLOAD 	:= $(UKF_SVC_BUILD)/$(UKF_SVC_PAYLOAD_NAME)
+UKF_SVC_ELF 		:= $(UKF_SVC_BUILD)/$(UKF_SVC_OUTPUT_NAME).elf
 
 .PHONY: uk-service-build uk-service-initrd
-uk-service-build: $(UK_SERVICE_CONFIG_STAMP) libsddf_util.a uk-service-initrd
-	$(call uk_unikraft_make, 	\
-		$(UK_SERVICE_DIR), 		\
-		$(UK_SERVICE_BUILD), 	\
-		$(UK_SERVICE_LIBS), 	\
-		CONFIG_LIBVFSCORE_AUTOMOUNT_EINITRD_PATH=$(UK_SERVICE_INITRD) \
-		$(UK_SERVICE_MAKE_ARGS))
-	cp $(UK_SERVICE_PAYLOAD_ELF) $(UK_SERVICE_ELF)
+uk-service-build: $(UKF_SVC_CFG) libsddf_util.a uk-service-initrd
+	$(call ukf_make, 			\
+		$(UKF_SVC_DIR), 		\
+		$(UKF_SVC_BUILD), 	\
+		$(UKF_SVC_LIBS), 	\
+		$(UKF_SVC_ARGS))
+	cp $(UKF_SVC_PAYLOAD) $(UKF_SVC_ELF)
 
 uk-service-initrd:
-	mkdir -p $(dir $(UK_SERVICE_INITRD))
-	rm -f $(UK_SERVICE_INITRD)
-	$(BM_UK_MKCPIO) $(UK_SERVICE_INITRD) $(UK_SERVICE_ROOTFS_DIR)
+	mkdir -p $(dir $(UKF_SVC_INITRD))
+	rm -f $(UKF_SVC_INITRD)
+	$(UKF_MKCPIO) $(UKF_SVC_INITRD) $(UKF_SVC_ROOTFS)
 
-$(UK_SERVICE_CONFIG_STAMP): $(UK_SERVICE_CONFIG) $(UK_SERVICE_DIR)/Makefile.uk $(UK_ON_MK_DIR)/uk.mk
-	$(call uk_unikraft_configure,	\
-		$(UK_SERVICE_CONFIG),		\
-		$(UK_SERVICE_DIR),			\
-		$(UK_SERVICE_BUILD),		\
-		$(UK_SERVICE_LIBS),			\
-		$(UK_SERVICE_INITRD),		\
+$(UKF_SVC_CFG): $(UKF_SVC_CFG_SRC) $(UKF_SVC_DIR)/Makefile.uk $(UK_ON_MK_DIR)/uk.mk
+	$(call ukf_cfg,				\
+		$(UKF_SVC_CFG_SRC),		\
+		$(UKF_SVC_DIR),			\
+		$(UKF_SVC_BUILD),		\
+		$(UKF_SVC_LIBS),		\
+		$(UKF_SVC_INITRD),		\
 		$@,							\
-		$(UK_SERVICE_MAKE_ARGS))
+		$(UKF_SVC_ARGS))
 endif
