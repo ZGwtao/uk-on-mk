@@ -3,8 +3,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 #
+UKF_APP_ELF := unikraft-$(TARGET_APP).elf
+
 IMAGES := \
-	unikraft.elf \
+	$(UKF_APP_ELF) \
 	timer_driver.elf \
 	serial_driver.elf \
 	serial_virt_rx.elf \
@@ -30,7 +32,7 @@ QEMU_GUEST_PORT ?= 80
 # Only network services need a host forwarding rule.  Omitting it for
 # non-network applications avoids failing QEMU when a host service owns 8080.
 QEMU_HOSTFWD :=
-ifneq ($(filter c-http nginx,$(BM_UK_APPLICATION)),)
+ifneq ($(filter c-http nginx,$(TARGET_APP)),)
 QEMU_HOSTFWD := ,hostfwd=tcp::$(QEMU_HOST_PORT)-:$(QEMU_GUEST_PORT)
 endif
 
@@ -81,11 +83,13 @@ $(SYSTEM_FILE): $(METAPROGRAM) $(IMAGES) $(DTB)
 ifneq ($(strip $(DTS)),)
 	$(PYTHON) -B \
 	    $(METAPROGRAM) --sddf $(SDDF) --board $(MICROKIT_BOARD) \
-	    --dtb $(DTB) --output . --sdf $(SYSTEM_FILE) --objcopy $(OBJCOPY)
+	    --dtb $(DTB) --output . --sdf $(SYSTEM_FILE) --objcopy $(OBJCOPY) \
+	    --app $(TARGET_APP)
 else
 	$(PYTHON) -B \
 	    $(METAPROGRAM) --sddf $(SDDF) --board $(MICROKIT_BOARD) \
-	    --output . --sdf $(SYSTEM_FILE) --objcopy $(OBJCOPY)
+	    --output . --sdf $(SYSTEM_FILE) --objcopy $(OBJCOPY) \
+	    --app $(TARGET_APP)
 endif
 	$(OBJCOPY) --update-section .device_resources=ethernet_driver_device_resources.data eth_driver.elf
 	$(OBJCOPY) --update-section .net_driver_config=net_driver.data eth_driver.elf
@@ -97,9 +101,9 @@ endif
 	$(OBJCOPY) --update-section .serial_virt_tx_config=serial_virt_tx.data serial_virt_tx.elf
 	$(OBJCOPY) --update-section .serial_virt_rx_config=serial_virt_rx.data serial_virt_rx.elf
 	$(OBJCOPY) --update-section .device_resources=timer_driver_device_resources.data timer_driver.elf
-	$(OBJCOPY) --update-section .serial_client_config=serial_client_unikraft.data unikraft.elf
-	$(OBJCOPY) --update-section .timer_client_config=timer_client_unikraft.data unikraft.elf
-	$(OBJCOPY) --update-section .net_client_config=net_client_unikraft.data unikraft.elf
+	$(OBJCOPY) --update-section .serial_client_config=serial_client_unikraft.data $(UKF_APP_ELF)
+	$(OBJCOPY) --update-section .timer_client_config=timer_client_unikraft.data $(UKF_APP_ELF)
+	$(OBJCOPY) --update-section .net_client_config=net_client_unikraft.data $(UKF_APP_ELF)
 
 $(IMAGE_FILE) $(REPORT_FILE): $(IMAGES) $(SYSTEM_FILE)
 	$(MICROKIT_TOOL) $(SYSTEM_FILE) \

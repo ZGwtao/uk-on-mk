@@ -19,8 +19,8 @@ IOPORT = SDF.IoPort
 IRQIOAPIC = SDF.IrqIoapic
 
 
-def create_unikernel(name: str):
-    unikernel = PD(f"{name}", f"{name}.elf", priority=50, stack_size=0x10000)
+def create_unikernel(name: str, image: str):
+    unikernel = PD(name, image, priority=50, stack_size=0x10000)
     uk_heap = MR(sdf, f"{name}/uk_heap", 0x4000000)
     sdf.add_mr(uk_heap)
     unikernel.add_map(MAP(
@@ -33,7 +33,8 @@ def create_unikernel(name: str):
 def generate(
     sdf_path: str,
     output_dir: str,
-    dtb: Optional[DeviceTree]
+    dtb: Optional[DeviceTree],
+    app: str,
 ):
     serial_node = None
     timer_node = None
@@ -127,7 +128,7 @@ def generate(
         "net_copier", "network_copy.elf", priority=98, budget=20000
     )
 
-    unikernel = create_unikernel("unikraft")
+    unikernel = create_unikernel("unikraft", f"unikraft-{app}.elf")
 
     serial_system.add_client(unikernel)
     timer_system.add_client(unikernel)
@@ -178,6 +179,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", required=True)
     parser.add_argument("--sdf", required=True)
     parser.add_argument("--objcopy", required=True)
+    parser.add_argument("--app", required=True)
 
     args = parser.parse_args()
 
@@ -190,4 +192,4 @@ if __name__ == "__main__":
         with open(args.dtb, "rb") as f:
             dtb = DeviceTree(f.read())
 
-    generate(args.sdf, args.output, dtb)
+    generate(args.sdf, args.output, dtb, args.app)
