@@ -1,0 +1,4 @@
+$(eval $(call addlib,serviceramfs))
+
+SERVICERAMFS_SRCS-y += $(SERVICERAMFS_BASE)/ramfs-server.c
+SERVICERAMFS_CINCLUDES-y += -I$(LIONSOS)/include

@@ -1,0 +1,6 @@
+config SERVICERAMFS
+	bool "Carrels RAMFS system service"
+	default y
+	select LIBVFSCORE
+	select LIBRAMFS
+	select LIBUKCPIO
